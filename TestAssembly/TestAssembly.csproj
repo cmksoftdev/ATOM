@@ -49,5 +49,8 @@
       <Name>ATOM</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="te.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
