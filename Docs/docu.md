@@ -151,3 +151,26 @@ The function intermediateStep is to decode some parts. It gets the whole byte ar
 
 ### Creating assembly package
 Now we need to create a zip archiv, containing the assemblies we want to execute, and the config file.
+
+#### Config
+This is the config DTO:
+```csharp
+public class Config
+{
+    [XmlArray]
+    [XmlArrayItem("a")]
+    public List<string> assemblies { get; set; }
+    public string classToCall { get; set; }
+}
+```
+
+This is how the XML config file should look like:
+```xml
+<?xml version="1.0"?>
+<Config>
+    <assemblies>
+        <a>TestAssembly.Class1</a>
+    </assemblies>
+    <classToCall>TestAssembly.Class1</classToCall>
+</Config>
+```
