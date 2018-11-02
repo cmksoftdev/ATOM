@@ -149,7 +149,7 @@ Later our service class should look like this:
 ```
 The function intermediateStep is to decode some parts. It gets the whole byte array and has to return a byte array.
 
-### Creating assembly package
+### Creating a ZAP (Zipped Assembly Package) 
 Now we need to create a zip archiv, containing the assemblies we want to execute, and the config file.
 
 #### Config
@@ -174,3 +174,27 @@ This is how the XML config file should look like:
     <classToCall>TestAssembly.Class1</classToCall>
 </Config>
 ```
+
+#### Creating the assembly
+Our last step is to create the assembly. How I mentioned, the assembly has to implement the IStart interface. For the first demonstration we will just create a tiny assembly, not doing much, just writing some lines on the console.
+
+Here is the code:
+```csharp
+namespace TestAssembly
+{
+    public class Class1 : IStart
+    {
+        public void EntryPoint()
+        {
+            Console.WriteLine("Hallo.");
+            Console.WriteLine("It's working.");
+            Console.WriteLine("Good.");
+        }
+    }
+}
+```
+
+Now we just have to put the files into a zip archiv and to upload it on a web server. After that we can execute the assembly loaded from the web server. 
+
+### Comming soon...
+Later we will create some bigger projects, putting it in a ZAP...
