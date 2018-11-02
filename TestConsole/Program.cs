@@ -12,7 +12,7 @@ namespace TestConsole
     {
         static void Main(string[] args)
         {
-            ExecuteCodeFromUrl("http://cmk.bplaced.net/download/Debug.zip");
+            ExecuteCodeFromUrl("https://code.msdn.microsoft.com/Execute-assemblies-from-864a0c57/file/216490/1/Debug.zap");
             Console.ReadLine();
         }
     }

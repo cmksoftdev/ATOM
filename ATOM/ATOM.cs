@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using System.Text;
 using System.IO.Compression;
 using System.Xml.Serialization;
 using System.Linq;
@@ -13,9 +12,9 @@ namespace CMK
 {
     public class ATOM
     {
-        public interface ICallable
+        public interface IStart
         {
-            void Call();
+            void EntryPoint();
         }
 
         public interface ICallableWithParameters
@@ -107,11 +106,11 @@ namespace CMK
                 Config cfg = (Config)serializer.Deserialize(entries.FirstOrDefault(x => x.Name == "config.xml").Open());
                 var asms = new List<Assembly>();
                 foreach (var entry in entries)
-                    if(entry.Name.EndsWith(".dll"))
+                    if(entry.Name.EndsWith(".dll") || entry.Name.EndsWith(".exe"))
                         asms.Add(GetAssemblyFromStream(entry.Open(), intermediateStep));
                 var namespaceClass = cfg.classToCall.Split('.');
-                ICallable callableClass = Get<ICallable>(namespaceClass[0], namespaceClass[1], asms.FirstOrDefault(x => x.FullName.Contains(namespaceClass[0])), null);
-                callableClass.Call();
+                IStart callableClass = Get<IStart>(namespaceClass[0], namespaceClass[1], asms.FirstOrDefault(x => x.FullName.Contains(namespaceClass[0])), null);
+                callableClass.EntryPoint();
             }
         }
     }
