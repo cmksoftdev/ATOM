@@ -147,6 +147,7 @@ Later our service class should look like this:
         }
     }
 ```
+The function intermediateStep is to decode some parts. It gets the whole byte array and has to return a byte array.
 
 ### Creating assembly package
 Now we need to create a zip archiv, containing the assemblies we want to execute, and the config file.
