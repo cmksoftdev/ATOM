@@ -6,7 +6,7 @@ Maybe you want to extend your app by assemblies loaded from a webspace at runtim
 This is possible by using reflection. In this article I will show you how to achieve this.
 
 ### Requirement
-This article is for beginners, but to understand everything in the article you should know the basics of the following technics:
+This article is for beginners, but to understand everything, you should know the basics of the following technics:
 
 * Reflection
 * Interfaces
