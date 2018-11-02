@@ -24,7 +24,7 @@ First we will implement our base interface. This interface impements only the en
 the executing program knows where to start without knowing the assembly complettely.
 
 This interface should look like this:
-```code
+```csharp
 public interface IStart
 {
     void EntryPoint();
@@ -32,4 +32,121 @@ public interface IStart
 ```
 
 ### The executing app
-Now we will implement the app to load and execute the assemblies.
+Now we will implement the app to load and execute the assemblies. For the first test it should be enouth to implement a console app for it. If you want, you can use the shown technics in every kind of project.
+
+This is how your Main should look like:
+```csharp
+namespace TestConsole
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            foreach (var url in args)
+                ExecuteCodeFromUrl(url);
+            Console.ReadLine();
+        }
+    }
+}
+```
+
+How you can see, we are using the static Method ExecuteCodeFromUrl(string). This method will load and execute the assemblies loaded from a webserver.
+
+### Service class
+Now we have to implement the service class containing this method. This service class should do all the steps, mentioned in the description. So we need to load the zip archive using a web- or http client, map it, load config, create an instance of the class, implementing the IStart interface and last it should execute the EntryPoint method. It sound like a lot of work, but it is just combining some already existing services.
+
+Later our service class should look like this:
+```csharp
+    public class AssemblyLoader
+    {
+        public static Assembly GetAssemblyFromUrl(string url)
+        {
+            return GetAssemblyFromUrl(url, null);
+        }
+
+        public class Config
+        {
+            [XmlArray]
+            [XmlArrayItem("a")]
+            public List<string> assemblies { get; set; }
+            public string classToCall { get; set; }
+        }
+
+        public static Assembly GetAssemblyFromUrl(string url, Func<byte[], byte[]> intermediateStep)
+        {
+            using (var webClient = new WebClient())
+            {
+                var bytes = webClient.DownloadData(url);
+                if (intermediateStep != null)
+                    bytes = intermediateStep.Invoke(bytes);
+                return GetAssemblyFromBytes(bytes);
+            }
+        }
+
+        public static Assembly GetAssemblyFromBytes(byte[] bytes)
+        {
+            return Assembly.Load(bytes);
+        }
+
+        public static Assembly GetAssemblyFromStream(Stream stream)
+        {
+            return GetAssemblyFromStream(stream, null);
+        }
+
+        public static Assembly GetAssemblyFromStream(Stream stream, Func<byte[], byte[]> intermediateStep)
+        {
+            using (var ms = new MemoryStream())
+            {
+                stream.CopyTo(ms);
+                var bytes = ms.ToArray();
+                if (intermediateStep != null)
+                    bytes = intermediateStep.Invoke(bytes);
+                return Assembly.Load(bytes);
+            }
+        }
+
+        public static Assembly GetAssemblyFromFile(string filePath)
+        {
+            return Assembly.Load(filePath);
+        }
+
+        public static T Get<T>(string nameSpace, string className, byte[] array, object[] args) where T : class
+        {
+            var a = Assembly.Load(array);
+            return Get<T>(nameSpace, className, a, args);
+        }
+
+        public static T Get<T>(string nameSpace, string className, Assembly a, object[] args) where T : class
+        {
+            return (T)a.CreateInstance(
+                $"{nameSpace}.{className}",
+                true,
+                BindingFlags.CreateInstance,
+                null,
+                args,
+                CultureInfo.CurrentCulture,
+                null);
+        }
+
+        public static void ExecuteCodeFromUrl(string Url, Func<byte[], byte[]> intermediateStep = null)
+        {
+            using (var webClient = new WebClient())
+            {
+                ZipArchive gzStream = new ZipArchive(webClient.OpenRead(Url));
+                var entries = gzStream.Entries;
+                XmlSerializer serializer = new XmlSerializer(typeof(Config));
+                Config cfg = (Config)serializer.Deserialize(entries.FirstOrDefault(x => x.Name == "config.xml").Open());
+                var asms = new List<Assembly>();
+                foreach (var entry in entries)
+                    if (entry.Name.EndsWith(".dll"))
+                        asms.Add(GetAssemblyFromStream(entry.Open(), intermediateStep));
+                var namespaceClass = cfg.classToCall.Split('.');
+                IStart callableClass = Get<IStart>(namespaceClass[0], namespaceClass[1], asms.FirstOrDefault(x => x.FullName.Contains(namespaceClass[0])), null);
+                callableClass.EntryPoint();
+            }
+        }
+    }
+```
+
+### Creating assembly package
+Now we need to create a zip archiv, containing the assemblies we want to execute, and the config file.
