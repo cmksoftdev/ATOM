@@ -7,6 +7,7 @@ using System.Reflection;
 using System.IO.Compression;
 using System.Xml.Serialization;
 using System.Linq;
+using System.Threading;
 
 namespace CMK
 {
@@ -17,19 +18,16 @@ namespace CMK
             void EntryPoint();
         }
 
-        public interface ICallableWithParameters
-        {
-            void Call(IEnumerable<object> parameters);
-        }
-
-        public interface ICallableWithParametersAndReturn
-        {
-            object Call(IEnumerable<object> parameters);
-        }
-
         public static Assembly GetAssemblyFromUrl(string url)
         {
             return GetAssemblyFromUrl(url, null);
+        }
+
+        public enum Threading
+        {
+            SameThread,
+            NewThread,
+            NewSTA
         }
 
         public class Config
@@ -38,6 +36,7 @@ namespace CMK
             [XmlArrayItem("a")]
             public List<string> assemblies { get; set; }
             public string classToCall { get; set; }
+            public Threading threading { get; set; }
         }
 
         public static Assembly GetAssemblyFromUrl(string url, Func<byte[], byte[]> intermediateStep)
@@ -109,8 +108,22 @@ namespace CMK
                     if(entry.Name.EndsWith(".dll") || entry.Name.EndsWith(".exe"))
                         asms.Add(GetAssemblyFromStream(entry.Open(), intermediateStep));
                 var namespaceClass = cfg.classToCall.Split('.');
-                IStart callableClass = Get<IStart>(namespaceClass[0], namespaceClass[1], asms.FirstOrDefault(x => x.FullName.Contains(namespaceClass[0])), null);
-                callableClass.EntryPoint();
+                if(cfg.threading == Threading.SameThread)
+                {
+                    IStart callableClass = Get<IStart>(namespaceClass[0], namespaceClass[1], asms.FirstOrDefault(x => x.FullName.Contains(namespaceClass[0])), null);
+                    callableClass.EntryPoint();
+                }
+                else
+                {
+                    Thread thread = new Thread(() =>
+                    {
+                        IStart callableClass2 = Get<IStart>(namespaceClass[0], namespaceClass[1], asms.FirstOrDefault(x => x.FullName.Contains(namespaceClass[0])), null);
+                        callableClass2.EntryPoint();
+                    });
+                    if (cfg.threading == Threading.NewSTA)
+                        thread.SetApartmentState(ApartmentState.STA); ;
+                    thread.Start();
+                }
             }
         }
     }

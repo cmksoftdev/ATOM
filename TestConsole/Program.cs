@@ -1,9 +1,4 @@
-﻿using CMK;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using static CMK.ATOM;
 
 namespace TestConsole
@@ -12,7 +7,7 @@ namespace TestConsole
     {
         static void Main(string[] args)
         {
-            ExecuteCodeFromUrl("https://code.msdn.microsoft.com/Execute-assemblies-from-864a0c57/file/216493/1/Assembly.zip");
+            ExecuteCodeFromUrl("http://cmk.bplaced.net/download/Wpf.zip");
             Console.ReadLine();
         }
     }
