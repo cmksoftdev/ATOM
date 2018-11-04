@@ -7,7 +7,7 @@ namespace TestConsole
     {
         static void Main(string[] args)
         {
-            ExecuteCodeFromUrl("http://cmk.bplaced.net/download/Wpf.zip");
+            ExecuteCodeFromUrl("https://code.msdn.microsoft.com/site/view/file/216527/1/Wpf.zip");
             Console.ReadLine();
         }
     }

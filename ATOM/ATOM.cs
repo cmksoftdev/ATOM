@@ -121,7 +121,7 @@ namespace CMK
                         callableClass2.EntryPoint();
                     });
                     if (cfg.threading == Threading.NewSTA)
-                        thread.SetApartmentState(ApartmentState.STA); ;
+                        thread.SetApartmentState(ApartmentState.STA);
                     thread.Start();
                 }
             }
